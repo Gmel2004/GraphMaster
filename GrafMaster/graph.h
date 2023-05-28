@@ -43,6 +43,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <sstream>
+#include <functional>
+using namespace std;
 
 class vertex;
 class Edge;
@@ -58,6 +60,9 @@ public:
     Graph(QWidget *parent = nullptr);
     void itemMoved();
     int getVertexNum();
+    void runDFS(int temp, bool* visited);
+    void runBFS(int index, bool* visited, QQueue<int>* bfsQueue);
+    void createDFSWindow();
 
 protected:
     void timerEvent(QTimerEvent *event) override;
@@ -98,9 +103,10 @@ protected:
     void createAddEdgeWindow();
     void createEraseEdgeWindow();
     void createUpdateWeightWindow();
-    void createDFSWindow();
     void createBFSWindow();
     void createDijkstraWindow();
+    void createAdjMatrixWindow();
+    void createFunctionWindow();
 
 private slots:
     void eraseVertexSignal();
@@ -112,6 +118,7 @@ private slots:
     void dfsSignal();
     void bfsSignal();
     int dijkstraSignal();
+    void StartSelectedFunction();
 
 private:
     unsigned int edgeNum=0;
@@ -130,9 +137,9 @@ private:
     QLineEdit *input1;
     QLineEdit *input2;
     QLineEdit *input3;
+    QLineEdit *input5;
 
     QString curFile;
-
 };
 
 #endif // GRAPH_H

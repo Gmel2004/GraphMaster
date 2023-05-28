@@ -184,7 +184,7 @@ void Vertex::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
 
     QRadialGradient gradient(-3, -3, 10);
     prepareGeometryChange();
-    if (option->state & QStyle::State_Sunken) {//градинеты
+    /*if (option->state & QStyle::State_Sunken) {//градинеты
         gradient.setCenter(3, 3);
         gradient.setFocalPoint(3, 3);
 
@@ -214,8 +214,8 @@ void Vertex::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
             gradient.setColorAt(0, QColor(Qt::cyan).lighter(120));
             gradient.setColorAt(1, QColor(Qt::darkCyan).lighter(120));
         }
-    }
-    painter->setBrush(gradient);
+    }*/
+    painter->setBrush(QBrush(Qt::white, Qt::SolidPattern));
     painter->setPen(QPen(Qt::black, 0));
     painter->drawEllipse(-10, -10, 20, 20);//рисование круга
     prepareGeometryChange();

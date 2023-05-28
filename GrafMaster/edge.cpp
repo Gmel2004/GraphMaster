@@ -71,14 +71,16 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     QPointF destArrowP2 = destPoint + QPointF(sin(angle - M_PI + M_PI / 3) * arrowSize, cos(angle - M_PI + M_PI / 3) * arrowSize);
 
 
-    if (color == "white") {
+    /*if (color == "white") {
         painter->setBrush(Qt::black);
         painter->setPen(QPen(Qt::black, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     }
     else if (color == "black") {
         painter->setBrush(Qt::red);
         painter->setPen(QPen(Qt::red, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    }
+    }*/
+    painter->setBrush(Qt::black);
+    painter->setPen(QPen(Qt::black, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     painter->drawLine(line);//рисование линии
     painter->drawPolygon(QPolygonF() << line.p2() << destArrowP1 << destArrowP2);//рисование стрелок
     painter->setBrush(Qt::red);
