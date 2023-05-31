@@ -17,7 +17,6 @@ SOURCES += \
 HEADERS += \
     edge.h \
     graph.h \
-    priority_queue.h \
     vertex.h
 
 FORMS += \

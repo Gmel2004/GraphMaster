@@ -1,10 +1,9 @@
 #include "graph.h"
 #include <QTextStream>
 #include <QMessageBox>
-#include "priority_queue.h"
+#include <map>
 
-bool flag = false;//флаг для алгоритма Дейкстры
-QString str;
+QString str;//для функций
 
 Graph::Graph(QWidget *parent) : QGraphicsView(parent) {
     scene = new QGraphicsScene(this);
@@ -18,10 +17,6 @@ Graph::Graph(QWidget *parent) : QGraphicsView(parent) {
     setTransformationAnchor(AnchorUnderMouse);
     scale(qreal(0.8), qreal(0.8));
     setMinimumSize(800, 900);
-
-    connected = true;
-    DFS.clear();
-    BFS.clear();
 }
 
 void Graph::itemMoved() {//хз
@@ -79,11 +74,6 @@ void Graph::drawBackground(QPainter *painter, const QRectF &rect){//хз
 }
 
 void Graph::createTabWidget(const QRectF &rect) {
-    /*QWidget *TextWidget = new QWidget;
-    QLabel label("Graph Master", TextWidget);
-    label.setGeometry(100, 100, 100, 100);
-    scene->addWidget(TextWidget);*/
-
     Q_UNUSED(rect);
 
     QRectF sceneRect = this->sceneRect();
@@ -117,30 +107,8 @@ void Graph::createTabWidget(const QRectF &rect) {
 
     connect(eraseVertexButton, &QPushButton::clicked, this, &Graph::createEraseVertexWindow);
 
-    QPushButton *setVertexPosButton = new QPushButton();
-    setVertexPosButton->setText(tr("Set Position"));
-    setVertexPosButton->setFont(textfont);
-    setVertexPosButton->setMaximumSize(QSize(120, 120));
-    setVertexPosButton->setStyleSheet("QPushButton:selected, QPushButton:hover{color: darkBlue;} "
-                                      "QPushButton:pressed{background-color: lightBlue;} "
-                                      "QPushButton{height: 30px; width: 30px; background-color: lightGray; border-right, border-bottom: 4px solid Gray;}");
-
-    connect(setVertexPosButton, &QPushButton::clicked, this, &Graph::createSetVertexPosWindow);
-
-    QPushButton *vertexInfoButton = new QPushButton();
-    vertexInfoButton->setText(tr("Vertex Info"));
-    vertexInfoButton->setFont(textfont);
-    vertexInfoButton->setMaximumSize(QSize(120, 120));
-    vertexInfoButton->setStyleSheet("QPushButton:selected, QPushButton:hover{color: darkBlue;} "
-                                   "QPushButton:pressed{background-color: lightBlue;} "
-                                   "QPushButton{height: 30px; width: 30px; background-color: lightGray; border-right, border-bottom: 4px solid Gray;}");
-
-    connect(vertexInfoButton, &QPushButton::clicked, this, &Graph::createVertexInfoWindow);
-
     vertexTabLayout->addWidget(addVertexButton);
     vertexTabLayout->addWidget(eraseVertexButton);
-    //vertexTabLayout->addWidget(setVertexPosButton); erase functional
-    //vertexTabLayout->addWidget(vertexInfoButton); erase functional
 
     QPushButton *addEdgeButton = new QPushButton();
     addEdgeButton->setText(tr("━▶➕"));
@@ -175,37 +143,6 @@ void Graph::createTabWidget(const QRectF &rect) {
     vertexTabLayout->addWidget(updateWeightButton);
     vertexTabLayout->addWidget(eraseEdgeButton);
 
-    /*QToolButton *functionButton = new QToolButton();
-    functionButton->setText(tr("Functions"));
-    functionButton->setFont(textfont);
-    functionButton->setMaximumSize(QSize(120, 35));
-    functionButton->setStyleSheet("QToolButton:selected, QToolButton:hover{color: darkBlue;} "
-                             "QToolButton:pressed{background-color: lightBlue;} "
-                             "QToolButton{height: 30px; width: 30px; background-color: lightGray; border-right, border-bottom: 4px solid Gray;}");
-    QMenu *menu = new QMenu;
-    menu->setFixedWidth(200);
-
-    QAction *dfs = new QAction(tr("DFS"), this);
-    dfs->setStatusTip(tr("Depth First Search"));
-    connect(dfs, &QAction::triggered, this, &Graph::createDFSWindow);
-    menu->addAction(dfs);
-    menu->addSeparator();
-
-    QAction *bfs = new QAction(tr("BFS"), this);
-    bfs->setStatusTip(tr("Breadth First Search"));
-    connect(bfs, &QAction::triggered, this, &Graph::createBFSWindow);
-    menu->addAction(bfs);
-    menu->addSeparator();
-
-    QAction *dijkstra = new QAction(tr("Dijkstra's algorithm"), this);
-    dijkstra->setStatusTip(tr("Dijkstra 's algorithm"));
-    connect(dijkstra, &QAction::triggered, this, &Graph::createDijkstraWindow);
-    menu->addAction(dijkstra);
-    menu->addSeparator();
-
-    functionButton->setPopupMode(QToolButton::InstantPopup);
-    functionButton->setMenu(menu);*/
-
     QPushButton *FuncButton = new QPushButton();
     FuncButton->setText(tr("🔎"));
     FuncButton->setFont(textfont);
@@ -216,17 +153,8 @@ void Graph::createTabWidget(const QRectF &rect) {
     connect(FuncButton, &QPushButton::clicked, this, &Graph::createFunctionWindow);
     vertexTabLayout->addWidget(FuncButton);
 
-    QPushButton *resetButton = new QPushButton();
-    resetButton->setText(tr("Reset"));
-    resetButton->setFont(textfont);
-    resetButton->setMaximumSize(QSize(120, 120));
-    resetButton->setStyleSheet("QPushButton:selected, QPushButton:hover{color: darkBlue;} "
-                             "QPushButton:pressed{background-color: lightBlue;} "
-                             "QPushButton{height: 30px; width: 30px; background-color: lightGray; border-right, border-bottom: 4px solid Gray;}");
-    connect(resetButton, &QPushButton::clicked, this, &Graph::reset);
-
     QPushButton *clearButton = new QPushButton();
-    clearButton->setText(tr("Clear"));
+    clearButton->setText(tr("🗑"));
     clearButton->setFont(textfont);
     clearButton->setMaximumSize(QSize(120, 120));
     clearButton->setStyleSheet("QPushButton:selected, QPushButton:hover{color: darkBlue;} "
@@ -234,21 +162,10 @@ void Graph::createTabWidget(const QRectF &rect) {
                              "QPushButton{height: 30px; width: 30px; background-color: lightGray; border-right, border-bottom: 4px solid Gray;}");
     connect(clearButton, &QPushButton::clicked, this, &Graph::clear);
 
-    QPushButton *graphInfoButton = new QPushButton();
-    graphInfoButton->setText(tr("Graph Info"));
-    graphInfoButton->setFont(textfont);
-    graphInfoButton->setMaximumSize(QSize(120, 120));
-    graphInfoButton->setStyleSheet("QPushButton:selected, QPushButton:hover{color: darkBlue;} "
-                             "QPushButton:pressed{background-color: lightBlue;} "
-                             "QPushButton{height: 30px; width: 30px; background-color: lightGray; border-right, border-bottom: 4px solid Gray;}");
-    connect(graphInfoButton, &QPushButton::clicked, this, &Graph::getGraphInfo);
-
-    //vertexTabLayout->addWidget(resetButton); erase functional
     vertexTabLayout->addWidget(clearButton);
-    //vertexTabLayout->addWidget(graphInfoButton); erase functional
 
     QPushButton *AdjMatrixButton = new QPushButton();
-    AdjMatrixButton->setText(tr("Adjacency\nmatrix"));
+    AdjMatrixButton->setText(tr("ℹ️"));
     AdjMatrixButton->setFont(textfont);
     AdjMatrixButton->setMaximumSize(QSize(120, 120));
     AdjMatrixButton->setStyleSheet("QPushButton:selected, QPushButton:hover{color: darkBlue;} "
@@ -314,11 +231,6 @@ void Graph::updateIndex() {
     }
 }
 
-void Graph::setVertexPos(int vertexIndex, double x, double y) {//сеттер для позиции вершины
-    Vertex *temp = vertexList[vertexIndex];
-    temp->setPos(QPointF(x, y));
-}
-
 void Graph::eraseVertex(int vertexIndex) {//удаление вершины
     Vertex *temp = vertexList[vertexIndex];
     for(Edge *edge : temp->getEdges()) {//удаление всех дуг, связанных с вершиной
@@ -330,118 +242,6 @@ void Graph::eraseVertex(int vertexIndex) {//удаление вершины
     vertexList.erase(vertexList.begin() + vertexIndex);
     updateIndex();
     vertexNum--;//изменяем количество вершин
-}
-
-void Graph::getVertexInfo(int vertexIndex) {//Вывод информации о выбранной вершине
-    QTableWidget *infoWindow = new QTableWidget;
-    Vertex *temp = vertexList[vertexIndex];
-    int vertexDegree = temp->getDegree();
-    //формирование таблички
-    infoWindow->setRowCount(vertexDegree + 5);
-    infoWindow->setColumnCount(2);
-    infoWindow->setItem(0, 0, new QTableWidgetItem("Property"));
-    infoWindow->setItem(0, 1, new QTableWidgetItem("Value"));
-
-    infoWindow->setItem(1, 0, new QTableWidgetItem("Vertex Index"));
-    infoWindow->setItem(1, 1, new QTableWidgetItem(QString::number(vertexIndex)));
-
-    infoWindow->setItem(2, 0, new QTableWidgetItem("Coordinate"));
-    QString x = QString::number(temp->getPos().x());
-    QString y = QString::number(temp->getPos().y());
-    QString coordinate = "X: " + x + " ; y: " + y;
-    infoWindow->setItem(2, 1, new QTableWidgetItem(coordinate));
-
-    infoWindow->setItem(3, 0, new QTableWidgetItem("Visited"));
-    bool visited = false;
-    if(vertexList[vertexIndex]->getColor() == "black"){
-        visited = true;
-    }
-    infoWindow->setItem(3, 1, new QTableWidgetItem(QString::number(visited)));
-
-    infoWindow->setItem(4, 0, new QTableWidgetItem("Vertex Degree"));
-    infoWindow->setItem(4, 1, new QTableWidgetItem(QString::number(vertexDegree)));
-
-    infoWindow->setItem(5, 0, new QTableWidgetItem("Adjacent Vertices"));
-    int rowCounter = 5;
-    for(Edge *edge : vertexList[vertexIndex]->getEdges()){
-        QString adjacentVertex = QString::number(vertexIndex) + " -> " + QString::number(edge->destVertex()->getIndex()) + " ; weight: " + QString::number(edge->getWeight());
-        infoWindow->setItem(rowCounter, 1, new QTableWidgetItem(adjacentVertex));
-        rowCounter++;
-    }
-    infoWindow->setWindowTitle(tr("Vertex Information Window"));
-    infoWindow->setColumnWidth(0, 140);
-    infoWindow->setColumnWidth(1, 220);
-    infoWindow->setFixedSize(QSize(380, 400));
-    infoWindow->show();
-}
-
-void Graph::getGraphInfo() {//Вывод информации о графе
-    int rows = vertexList.size() + 8;
-    int cols = vertexList.size() + 1;
-    QTableWidget *infoWindow = new QTableWidget(rows, cols);
-    infoWindow->setItem(0, 0, new QTableWidgetItem("Vertex Number"));
-    infoWindow->setItem(0, 1, new QTableWidgetItem(QString::number(vertexNum)));
-    infoWindow->setItem(1, 0, new QTableWidgetItem("Edge Number"));
-    infoWindow->setItem(1, 1, new QTableWidgetItem(QString::number(edgeNum)));
-    infoWindow->setItem(2, 0, new QTableWidgetItem("Connected Graph"));
-    infoWindow->setItem(2, 1, new QTableWidgetItem(QString::number(connected)));
-
-    QString dijkstra1 = "Dijkstra 's algorithm at index ";
-    if (flag==true && dijkstraSignal()!=-1)
-    {
-        QVector<int> k = dijkstra(dijkstraSignal());
-        dijkstra1+= QString::number(dijkstraSignal());
-        for(int i = 0; i < k.size(); i++){
-            infoWindow->setItem(3, i+1, new QTableWidgetItem(QString::number(k[i])));
-        }
-    }
-
-    infoWindow->setItem(3, 0, new QTableWidgetItem(dijkstra1));
-
-    QString dfs = "Depth First Search at index ";
-    if (!DFS.empty()){
-        dfs += QString::number(DFS[0]);
-        for (int i = 0; i < DFS.size(); i++) {
-            infoWindow->setItem(4, i+1, new QTableWidgetItem(QString::number(DFS[i])));
-        }
-    }
-    infoWindow->setItem(4, 0, new QTableWidgetItem(dfs));
-
-    QString bfs = "Breadth First Search at index ";
-    if (!BFS.empty()){
-        bfs += QString::number(BFS[0]);
-        for (int i = 0; i < BFS.size(); i++) {
-            infoWindow->setItem(5, i+1, new QTableWidgetItem(QString::number(BFS[i])));
-        }
-    }
-    infoWindow->setItem(5, 0, new QTableWidgetItem(bfs));
-    //вывод матрицы смежности
-    infoWindow->setItem(7, 0, new QTableWidgetItem("Graph Matrix"));
-    infoWindow->item(7, 0)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-
-    for (int i = 0; i < vertexNum; i++) {
-        infoWindow->setItem(7, i+1, new QTableWidgetItem(QString::number(i)));
-        infoWindow->item(7, i+1)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    }
-
-    for(int i = 0; i < vertexNum; i++) {
-        infoWindow->setItem(8+i, 0, new QTableWidgetItem(QString::number(i)));
-        infoWindow->item(8+i, 0)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        for (int j = 0; j < vertexNum; j++){
-            infoWindow->setItem(8+i, j+1, new QTableWidgetItem("0"));
-            infoWindow->item(8+i, j+1)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        }
-        for (Edge *edge : vertexList[i]->getEdges()) {
-            int pos = edge->destVertex()->getIndex();
-            infoWindow->setItem(8+i, pos+1, new QTableWidgetItem(QString::number(edge->getWeight())));
-            infoWindow->item(8+i, pos+1)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        }
-        infoWindow->setColumnWidth(i+1, 30);
-    }
-    infoWindow->setWindowTitle("Graph Information Window");
-    infoWindow->setColumnWidth(0, 200);
-    infoWindow->setFixedSize(QSize(600, 700));
-    infoWindow->show();
 }
 
 void Graph::insertEdge(int source, int dest, double weight){//Вставка дуги
@@ -497,131 +297,24 @@ void Graph::clear() {//полное удаление графа
     }
 }
 
-void Graph::checkConnected() {//проверка на посещение всех вершин, для проходов
-    connected = true;
-    for (Vertex *vertex : vertexList) {
-        bool visited = false;
-        if (vertex->getColor() == "black") {
-            visited = true;
-        }
-        connected &= visited;//хз
-    }
-}
-
-void Graph::reset() {//сброс прохода по графу
-    if (vertexList.size() == 0) {
-        return;
-    }
-    for(int i = 0; i < vertexList.size(); i++) {
-        vertexList[i]->setColor("white");
-        for(Edge *edge : vertexList[i]->getEdges()) {
-            edge->setColor("white");
-        }
-    }
-}
-
-void Graph::dfsUtil(int vertexIndex, QVector<bool> &visited) {//проход в глубину
-    QStack<int> dfsStack;//мб сделать рекурсивным?
-    dfsStack.push(vertexIndex);
-    while (!dfsStack.empty()) {//пока стек не пуст
-        int temp = dfsStack.top();
-        Vertex *tempVertex = vertexList[temp];
-        dfsStack.pop();
-        //проверка посещения текущей вершины
-        if (!visited[temp]) {
-            visited[temp] = true;
-            vertexList[temp]->setColor("black");
-            DFS.push_back(temp);
-            delay(50);//пауза
-        }
-        //проход по соседям
-        for (Edge *tempEdge : tempVertex->getEdges()) {
-            if (!visited[tempEdge->destVertex()->getIndex()]) {
-                tempEdge->destVertex()->setColor("gray");
-                delay(70);
-                dfsStack.push(tempEdge->destVertex()->getIndex());
-            }
-        }
-    }
-}
-
-void Graph::dfs(int vertexIndex){
-    DFS.clear();//чекнуть где находится спискок? - хз
-    QVector<bool> visited(vertexList.size(), false);
-    dfsUtil(vertexIndex, visited);
-    checkConnected();//по идее, можно убрать
-}
-
-void Graph::bfsUtil(int vertexIndex, QVector<bool> &visited) {//проход в ширину
-    QQueue<int> bfsQueue;
-    bfsQueue.push_back(vertexIndex);
-    while(!bfsQueue.empty()) {
-        int temp = bfsQueue.front();
-
-        Vertex *tempVertex = vertexList[temp];
-        bfsQueue.pop_front();
-        if(!visited[temp]){
-            visited[temp] = true;
-            tempVertex->setColor("black");
-            BFS.push_back(temp);
-            delay(50);
-        }
-        for (Edge *tempEdge : tempVertex->getEdges()) {
-            if(!visited[tempEdge -> destVertex() -> getIndex()]) {
-                tempEdge->destVertex()->setColor("gray");
-                bfsQueue.push_back(tempEdge->destVertex()->getIndex());
-                delay(70);
-            }
-        }
-    }
-}
-
-void Graph::bfs(int vertexIndex){
-    BFS.clear();
-    QVector<bool> visited(vertexList.size(), false);
-    bfsUtil(vertexIndex, visited);
-    checkConnected();
-}
-
-QVector<int> Graph::dijkstra(int vertexIndex) {//алгоритм Дейкстры
-    int Adj_matrix[vertexNum][vertexNum];
-    for(int i=0; i<vertexNum;i++) {
-        for(int j=0; j<vertexNum;j++) {
-            if (i==j) {
-                Adj_matrix[i][j] = 0;
-            }
-            else {
-                Adj_matrix[i][j] = 100000000;
-            }
-        }
-    }
-    PriorityQueue<int> queue;
-    for (int i=0; i < vertexNum; i++) {
-        queue.enqueue(Adj_matrix[vertexIndex][i],i);
-    }
-    while (queue.count() > 0) {
-        int Curr_vertex = queue.dequeue();
-        int edge_count = vertexList[Curr_vertex]->getEdges().count();
-        for (int i=0; i < edge_count; i++) {
-            Edge* e = vertexList[Curr_vertex]->getEdges()[i];
-            Vertex* dest = e->destVertex();
-            if (Adj_matrix[vertexIndex][Curr_vertex]+e->getWeight() < Adj_matrix[vertexIndex][dest->getIndex()]) {
-                int old = Adj_matrix[vertexIndex][dest->getIndex()];
-                Adj_matrix[vertexIndex][dest->getIndex()] = Adj_matrix[vertexIndex][Curr_vertex]+e->getWeight();
-                queue.update(old,dest->getIndex(),Adj_matrix[vertexIndex][dest->getIndex()]);//хз
-            }
-        }
-    }
-    QVector<int> new_vector;
+int ** Graph::GetAdjMatrix() {
+    int **AdjMatrix = new int*[vertexNum] {};
     for (int i = 0; i < vertexNum; i++) {
-        new_vector.append(Adj_matrix[vertexIndex][i]);
+        AdjMatrix[i] = new int[vertexNum]{};
     }
-    return new_vector;
+    for (Vertex* i : vertexList) {
+            for (Edge* j: i->getEdges()) {
+                AdjMatrix[i->getIndex()][j->destVertex()->getIndex()] = j->getWeight();
+            }
+    }
+    return AdjMatrix;
 }
 
-void Graph::delay(int time) {//пауза
-    clock_t now = clock();
-    while(clock() - now < time);
+void Graph::RemoveAdjMatrix(int ** AdjMatrix) {
+    for (int i = 0; i < vertexNum; i++) {
+            delete[] AdjMatrix[i];
+    }
+    delete[] AdjMatrix;
 }
 
 void Graph::createEraseVertexWindow() {//Окно для удаления выбранной вершины
@@ -639,81 +332,17 @@ void Graph::createEraseVertexWindow() {//Окно для удаления выб
     window->setLayout(layout);
     window->setWindowTitle("Erase Vertex Window");
 
-    connect(okButton, &QPushButton::clicked, this, &Graph::eraseVertexSignal);
+    connect(okButton, &QPushButton::clicked, this, &Graph::eraseVertexSlot);
     window->show();
 }
 
-void Graph::eraseVertexSignal() {//удаление выбранной вершины
+void Graph::eraseVertexSlot() {//удаление выбранной вершины
     int srcIndex = input1->text().toInt();
     window->close();
     if (srcIndex >= vertexList.size()){
         return;
     }
     eraseVertex(srcIndex);
-}
-
-void Graph::createSetVertexPosWindow(){
-    window = new QWidget;
-    input1 = new QLineEdit;
-    input2 = new QLineEdit;
-    input3 = new QLineEdit;
-    QLabel *label = new QLabel;
-    label->setFrameStyle(QFrame::Box | QFrame::Plain);
-    QPushButton *okButton = new QPushButton(tr("OK"));
-
-    QGridLayout *layout = new QGridLayout;
-    layout->addWidget(new QLabel(tr("Vertex Index:")), 0, 0);
-    layout->addWidget(input1, 0, 1);
-    layout->addWidget(new QLabel(tr("X Coordinate")), 1, 0);
-    layout->addWidget(input2, 1, 1);
-    layout->addWidget(new QLabel(tr("Y Coordinate:")), 2, 0);
-    layout->addWidget(input3, 2, 1);
-    layout->addWidget(okButton, 3, 1, Qt::AlignRight);
-    layout->setSizeConstraint(QLayout::SetFixedSize);
-    window->setLayout(layout);
-    window->setWindowTitle("Set Vertex Position Window");
-    connect(okButton, &QPushButton::clicked, this, &Graph::setVertexPosSignal);
-    window->show();
-}
-
-void Graph::setVertexPosSignal(){
-    int vertexIndex = input1->text().toInt();
-    double xvel = input2->text().toDouble();
-    double yvel = input3->text().toDouble();
-    window->close();
-
-    if (vertexIndex >= vertexList.size()){
-        return;
-    }
-    setVertexPos(vertexIndex, xvel, yvel);
-}
-
-void Graph::createVertexInfoWindow() {//окно информации о выбранной вершине
-    window = new QWidget;
-    input1 = new QLineEdit;
-    QLabel *label = new QLabel;
-    label -> setFrameStyle(QFrame::Box | QFrame::Plain);
-    QPushButton *okButton = new QPushButton(tr("OK"));
-
-    QGridLayout *layout = new QGridLayout;
-    layout->addWidget(new QLabel(tr("Vertex Index:")), 0, 0);
-    layout->addWidget(input1, 0, 1);
-    layout->addWidget(okButton, 1, 1, Qt::AlignRight);
-    layout->setSizeConstraint(QLayout::SetFixedSize);
-    window->setLayout(layout);
-    window->setWindowTitle("Vertex Info Window");
-
-    connect(okButton, &QPushButton::clicked, this, &Graph::vertexInfoSignal);
-    window->show();
-}
-
-void Graph::vertexInfoSignal() {//вывод информации о выбранной вершине
-    int index = input1->text().toInt();
-    window->close();
-    if (index >= vertexList.size()){
-        return;
-    }
-    getVertexInfo(index);
 }
 
 void Graph::createAddEdgeWindow() {//окно для добавления дуги
@@ -737,15 +366,14 @@ void Graph::createAddEdgeWindow() {//окно для добавления дуг
     window->setLayout(layout);
     window->setWindowTitle("Add Edge Window");
 
-    connect(okButton, &QPushButton::clicked, this, &Graph::addEdgeSignal);
+    connect(okButton, &QPushButton::clicked, this, &Graph::addEdgeSlot);
     window->show();
 }
 
-void Graph::addEdgeSignal() {//добавление дуги
+void Graph::addEdgeSlot() {//добавление дуги
     int srcIndex = input1->text().toInt();
     int destIndex = input2->text().toInt();
     double edgeWeight = input3->text().toDouble();
-    window->close();
     if (srcIndex >= vertexList.size() || destIndex >= vertexList.size() || edgeWeight <= 0){
         return;
     }
@@ -770,11 +398,11 @@ void Graph::createEraseEdgeWindow() {//окно для удаления выбр
     window->setLayout(layout);
     window->setWindowTitle("Erase Edge Window");
 
-    connect(okButton, &QPushButton::clicked, this, &Graph::eraseEdgeSignal);
+    connect(okButton, &QPushButton::clicked, this, &Graph::eraseEdgeSlot);
     window->show();
 }
 
-void Graph::eraseEdgeSignal() {//удаление выбранной дуги
+void Graph::eraseEdgeSlot() {//удаление выбранной дуги
     int srcIndex = input1->text().toInt();
     int destIndex = input2->text().toInt();
     window->close();
@@ -805,11 +433,11 @@ void Graph::createUpdateWeightWindow() {//окно для изменения в�
     window->setLayout(layout);
     window->setWindowTitle("Update Weight Window");
 
-    connect(okButton, &QPushButton::clicked, this, &Graph::updateWeightSignal);
+    connect(okButton, &QPushButton::clicked, this, &Graph::updateWeightSlot);
     window->show();
 }
 
-void Graph::updateWeightSignal() {//изменение веса
+void Graph::updateWeightSlot() {//изменение веса
     int srcIndex = input1->text().toInt();
     int destIndex = input2->text().toInt();
     double edgeWeight = input3->text().toDouble();
@@ -877,6 +505,136 @@ void Graph::runBFS(int index, bool* visited, QQueue<int>* bfsQueue) {
     }
 }
 
+void Graph::runDijkstra(int vertexIndex) {
+    int** AdjMatrix = GetAdjMatrix();
+    QVector <int> distance(vertexNum, INT_MAX);
+    distance[vertexIndex] = 0;
+    map<int, int> m;
+    m[0] = vertexIndex;
+    while(!m.empty()) {
+        int m_lenght = (*m.begin()).first;
+        int m_vertex = (*m.begin()).second;
+        m.erase(m.begin());
+        if (m_lenght <= distance[m_vertex]) {
+            distance[m_vertex] = m_lenght;
+            for (int i = 0; i < vertexNum; i++) {
+                if (distance[i] > distance[m_vertex] + AdjMatrix[m_vertex][i] && AdjMatrix[m_vertex][i] != 0) {
+                    distance[i] = distance[m_vertex] + AdjMatrix[m_vertex][i];
+                    m[distance[i]] = i;
+                }
+            }
+         }
+    }
+    for (int i = 0; i < distance.size(); i++) {
+        if (distance[i] != INT_MAX && i != vertexIndex) {
+            str += "Расстояние от вершины " + QString::number(vertexIndex) + " до вершины " + QString::number(i) + " cоставляет " + QString::number(distance[i]) + '\n';
+        }
+        else if (i != vertexIndex) {
+            str += "Вершины " + QString::number(vertexIndex) + " и " + QString::number(i) + " не соединены\n";
+        }
+    }
+    RemoveAdjMatrix(AdjMatrix);
+}
+
+void Graph::runTSP() {
+    int **AdjMatrix = GetAdjMatrix();//получение матрицы смежности
+    //проверка на возможность выполнения функции
+    bool FlagToContinue = (vertexNum > 2);
+    for (int i = 0; i < vertexNum && FlagToContinue; i++) {
+        FlagToContinue = (vertexList[i]->getEdges().size() > 1);
+    }
+    if (FlagToContinue) {
+        int ** OrigianalAdjMatrix = GetAdjMatrix();
+        int m = INT_MAX, Sum = 0;
+        for (int i = 0; i < vertexNum; i++) {
+            for (int j = 0; j < vertexNum; j++) {
+                if (AdjMatrix[i][j] == 0) {
+                    AdjMatrix[i][j] = m;
+                }
+            }
+        }
+        QMap<int,int> roads = {};
+        for (int z = 0; z < vertexNum; z++) {
+            int maxi = 0, maxj = 0;
+            int di[vertexNum], dj[vertexNum];
+            int maxScore = 0;
+            for (int i = 0; i < vertexNum; i++) {
+                di[i] = dj[i] = m;
+            }
+            for (int i = 0; i < vertexNum; i++) {
+                for (int j = 0; j < vertexNum; j++) {
+                    if (AdjMatrix[i][j] < di[i]) {
+                        di[i] = AdjMatrix[i][j];
+                    }
+                }
+            }
+            for (int i = 0; i < vertexNum; i++) {
+                for (int j = 0; j < vertexNum; j++) {
+                        if (AdjMatrix[i][j] != m) {
+                            AdjMatrix[i][j] -= di[i];
+                         }
+                }
+            }
+            for (int i = 0; i < vertexNum; i++) {
+                for (int j = 0; j < vertexNum; j++) {
+                    if (AdjMatrix[j][i] < dj[i]) {
+                        dj[i] = AdjMatrix[j][i];
+                    }
+                }
+            }
+            for (int i = 0; i < vertexNum; i++) {
+                for (int j = 0; j < vertexNum; j++) {
+                    if (AdjMatrix[j][i] != m) {
+                        AdjMatrix[j][i] -= dj[i];
+                    }
+                }
+            }
+            for (int i = 0; i < vertexNum; i++) {
+                for (int j = 0; j < vertexNum; j++) {
+                    int imin = m, jmin = m;
+                    if (AdjMatrix[i][j] == 0) {
+                        for (int k = 0; k < vertexNum; k++) {
+                            if (AdjMatrix[k][j] < imin && i != k) {
+                                imin = AdjMatrix[k][j];
+                            }
+                            if (AdjMatrix[i][k] < jmin) {
+                                jmin = AdjMatrix[i][k];
+                            }
+                        }
+                        if (maxScore < imin + jmin) {
+                            maxScore = imin + jmin;
+                            maxi = i;
+                            maxj = j;
+                        }
+                    }
+                }
+            }
+            roads[maxj] = maxi;
+            AdjMatrix[maxj][maxi] = m;
+            Sum += OrigianalAdjMatrix[maxi][maxj];
+
+            for (int i = 0; i < vertexNum; i++) {
+                AdjMatrix[i][maxj] = m;
+                AdjMatrix[maxi][i] = m;
+            }
+        }
+
+        int i = 0;
+        str += QString::number(i);
+        while(FlagToContinue) {
+            str += "-> " + QString::number(roads[i]);
+            i = roads[i];
+            FlagToContinue = (i != 0);
+        }
+        str += " Сумма = " + QString::number(Sum);
+        RemoveAdjMatrix(OrigianalAdjMatrix);
+    }
+    else {
+        str += "Решение задачи Коммивояжёра невозможно!\nКаждая вершина графа должна иметь как минимум два ребра!";
+    }
+    RemoveAdjMatrix(AdjMatrix);
+}
+
 void Graph::StartSelectedFunction() {
     int index = input1->text().toInt();
     int NumOfFunction = input5->text().toInt();
@@ -900,11 +658,13 @@ void Graph::StartSelectedFunction() {
             break;
         }
         case(Functions::Dijkstra): {
-            //дописать
+            runDijkstra(index);
+            createDijkstraWindow();
             break;
         }
         case(Functions::Travel): {
-            //дописать
+            runTSP();
+            createTSPWindow();
             break;
         }
         }
@@ -931,49 +691,22 @@ void Graph::createBFSWindow() {
     window->show();
 }
 
-void Graph::dfsSignal(){
-    int index = input1->text().toInt();
-    window->close();
-    if(index >= vertexList.size()){
-        return;
-    }
-    dfs(index);
-}
-
 void Graph::createDijkstraWindow() {
     window = new QWidget;
-    input1 = new QLineEdit;
-    QLabel *label = new QLabel;
-    label->setFrameStyle(QFrame::Box | QFrame::Plain);
-    QPushButton *okButton = new QPushButton(tr("OK"));
-
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(new QLabel(tr("Starting Vertex Index:")), 0, 0);
-    layout->addWidget(input1, 0, 1);
-    layout->addWidget(okButton, 1, 1, Qt::AlignRight);
-    layout->setSizeConstraint(QLayout::SetFixedSize);
+    layout->addWidget(new QLabel(str), 0, 0);
+    str = "";
     window->setLayout(layout);
-    window->setWindowTitle("Dijkstra Window");
-
-    connect(okButton, &QPushButton::clicked, this, &Graph::dijkstraSignal);
+    window->setWindowTitle("Алгоритм Дейкстры");
     window->show();
 }
 
-void Graph::bfsSignal() {
-    int index = input1->text().toInt();
-    window->close();
-    if(index >= vertexList.size()){
-        return;
-    }
-    bfs(index);
-}
-
-int Graph::dijkstraSignal() {
-    flag = true;
-    int index=input1->text().toInt();
-    window->close();
-    if(index >= vertexList.size()){
-        return -1;
-    }
-    return index;
+void Graph::createTSPWindow() {
+    window = new QWidget;
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(new QLabel(str), 0, 0);
+    str = "";
+    window->setLayout(layout);
+    window->setWindowTitle("Решение задачи Коммивояжёра");
+    window->show();
 }

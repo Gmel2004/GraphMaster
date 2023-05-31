@@ -66,9 +66,9 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
         return;
     }
 
-    double angle = std::atan2(-line.dy(), line.dx());
-    QPointF destArrowP1 = destPoint + QPointF(sin(angle - M_PI / 3) * arrowSize, cos(angle - M_PI / 3) * arrowSize);
-    QPointF destArrowP2 = destPoint + QPointF(sin(angle - M_PI + M_PI / 3) * arrowSize, cos(angle - M_PI + M_PI / 3) * arrowSize);
+    //double angle = std::atan2(-line.dy(), line.dx());
+    //QPointF destArrowP1 = destPoint + QPointF(sin(angle - M_PI / 3) * arrowSize, cos(angle - M_PI / 3) * arrowSize);
+    //QPointF destArrowP2 = destPoint + QPointF(sin(angle - M_PI + M_PI / 3) * arrowSize, cos(angle - M_PI + M_PI / 3) * arrowSize);
 
 
     /*if (color == "white") {
@@ -82,9 +82,9 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     painter->setBrush(Qt::black);
     painter->setPen(QPen(Qt::black, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     painter->drawLine(line);//рисование линии
-    painter->drawPolygon(QPolygonF() << line.p2() << destArrowP1 << destArrowP2);//рисование стрелок
+    //painter->drawPolygon(QPolygonF() << line.p2() << destArrowP1 << destArrowP2);//рисование стрелок erase functional
     painter->setBrush(Qt::red);
-    painter->setPen(QPen(Qt::red, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    painter->setPen(QPen(Qt::blue, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     painter->drawText(QRectF(QPointF(sourcePoint.x() - 15, sourcePoint.y() - 15), QPointF(destPoint.x() + 15, destPoint.y() + 15)), Qt::AlignCenter, QString::number(weight));//вывод веса
 }
 

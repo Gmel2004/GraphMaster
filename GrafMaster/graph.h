@@ -50,9 +50,6 @@ class vertex;
 class Edge;
 class Graph;
 
-
-#define M INT_MAX
-
 class Graph : public QGraphicsView {
     Q_OBJECT
 
@@ -62,7 +59,11 @@ public:
     int getVertexNum();
     void runDFS(int temp, bool* visited);
     void runBFS(int index, bool* visited, QQueue<int>* bfsQueue);
+    void runDijkstra(int vertexIndex);
     void createDFSWindow();
+    int ** GetAdjMatrix();
+    void RemoveAdjMatrix(int ** AdjMatrix);
+    void runTSP();
 
 protected:
     void timerEvent(QTimerEvent *event) override;
@@ -82,24 +83,8 @@ protected:
     bool checkAdjacent(int source, int dest);
     int getDegree(int vertexIndex);
     void clear();
-    void checkConnected();
-
-    void reset();
-
-    void getVertexInfo(int vertexIndex);
-    void getGraphInfo();
-
-    void dfsUtil(int vertexIndex, QVector<bool> &visited);
-    void dfs(int vertexIndex);
-
-    void bfsUtil(int vertexIndex, QVector<bool> &visited);
-    void bfs(int vertexIndex);
-
-    void delay(int time);
 
     void createEraseVertexWindow();
-    void createSetVertexPosWindow();
-    void createVertexInfoWindow();
     void createAddEdgeWindow();
     void createEraseEdgeWindow();
     void createUpdateWeightWindow();
@@ -107,27 +92,19 @@ protected:
     void createDijkstraWindow();
     void createAdjMatrixWindow();
     void createFunctionWindow();
+    void createTSPWindow();
 
 private slots:
-    void eraseVertexSignal();
-    void setVertexPosSignal();
-    void vertexInfoSignal();
-    void addEdgeSignal();
-    void eraseEdgeSignal();
-    void updateWeightSignal();
-    void dfsSignal();
-    void bfsSignal();
-    int dijkstraSignal();
+    void eraseVertexSlot();
+    void addEdgeSlot();
+    void eraseEdgeSlot();
+    void updateWeightSlot();
     void StartSelectedFunction();
 
 private:
     unsigned int edgeNum=0;
     int vertexNum;
     bool connected;
-
-    QVector<int> DFS;
-    QVector<int> BFS;
-    QVector<int> dijkstra(int);
 
     QVector<Vertex *> vertexList;
     QGraphicsScene *scene;
